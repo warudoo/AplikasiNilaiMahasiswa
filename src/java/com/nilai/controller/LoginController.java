@@ -16,34 +16,50 @@ public class LoginController extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         if (request.getSession().getAttribute("user") != null) {
-            response.sendRedirect("nilai");
+            response.sendRedirect("mahasiswa");
             return;
         }
         
         response.setContentType("text/html;charset=UTF-8");
         try (PrintWriter out = response.getWriter()) {
             HttpSession session = request.getSession();
-            out.println("<!DOCTYPE html>");
-            out.println("<html><head><title>Login</title>");
-            out.println("<link rel='stylesheet' href='https://unpkg.com/simpledotcss/simple.min.css'>");
+            out.println("<!DOCTYPE html><html lang='en'><head>");
+            out.println("<meta charset='UTF-8'>");
+            out.println("<meta name='viewport' content='width=device-width, initial-scale=1.0'>");
+            out.println("<title>Login - Aplikasi Nilai</title>");
+            out.println("<link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css' rel='stylesheet'>");
             out.println("<style>");
-            out.println("body { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f4; }");
-            out.println("article { min-width: 350px; background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }");
-            out.println(".alert-error { background-color: #f8d7da; color: #721c24; padding: 1rem; border-radius: 5px; margin-bottom:1rem; border: 1px solid #f5c6cb; }");
+            out.println("body { display: flex; align-items: center; justify-content: center; height: 100vh; background-color: #f8f9fa; }");
+            out.println(".login-card { max-width: 400px; width: 100%; }");
             out.println("</style>");
-            out.println("</head><body><article>");
-            out.println("<h2>Login Aplikasi</h2>");
+            out.println("</head><body>");
+            
+            out.println("<div class='card login-card shadow-sm'>");
+            out.println("  <div class='card-body p-5'>");
+            out.println("    <h3 class='card-title text-center mb-4'>Selamat Datang</h3>");
             
             if (session.getAttribute("loginError") != null) {
-                out.println("<div class='alert-error'>" + session.getAttribute("loginError") + "</div>");
+                out.println("<div class='alert alert-danger'>" + session.getAttribute("loginError") + "</div>");
                 session.removeAttribute("loginError");
             }
             
             out.println("<form method='post' action='login'>");
-            out.println("<p><label>Username</label><input type='text' name='username' required autofocus></p>");
-            out.println("<p><label>Password</label><input type='password' name='password' required></p>");
-            out.println("<button type='submit'>Login</button>");
-            out.println("</form></article></body></html>");
+            out.println("  <div class='mb-3'>");
+            out.println("    <label for='username' class='form-label'>Username</label>");
+            out.println("    <input type='text' class='form-control' id='username' name='username' required autofocus>");
+            out.println("  </div>");
+            out.println("  <div class='mb-3'>");
+            out.println("    <label for='password' class='form-label'>Password</label>");
+            out.println("    <input type='password' class='form-control' id='password' name='password' required>");
+            out.println("  </div>");
+            out.println("  <div class='d-grid'>");
+            out.println("    <button type='submit' class='btn btn-primary'>Login</button>");
+            out.println("  </div>");
+            out.println("</form>");
+            out.println("  </div>");
+            out.println("</div>");
+
+            out.println("</body></html>");
         }
     }
 
@@ -56,7 +72,7 @@ public class LoginController extends HttpServlet {
         HttpSession session = request.getSession();
         if (userModel.login()) {
             session.setAttribute("user", userModel);
-            response.sendRedirect("nilai");
+            response.sendRedirect("mahasiswa"); 
         } else {
             session.setAttribute("loginError", userModel.getPesan());
             response.sendRedirect("login");
