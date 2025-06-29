@@ -2,7 +2,7 @@ package com.nilai.controller;
 
 import com.nilai.model.Koneksi;
 import com.nilai.model.Nilai;
-import com.nilai.model.User;
+import com.nilai.view.Layout; // Import kelas Layout
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
@@ -57,7 +57,7 @@ public class NilaiController extends HttpServlet {
         }
 
         if (nilaiModel.simpanAtauUpdate()) {
-            request.getSession().setAttribute("message", "Data berhasil disimpan!");
+            request.getSession().setAttribute("message", "Data nilai berhasil disimpan!");
         } else {
             request.getSession().setAttribute("error", nilaiModel.getPesan());
         }
@@ -78,7 +78,7 @@ public class NilaiController extends HttpServlet {
     private void handleDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
          int id = Integer.parseInt(request.getParameter("id"));
          if(nilaiModel.hapus(id)){
-             request.getSession().setAttribute("message", "Data berhasil dihapus!");
+             request.getSession().setAttribute("message", "Data nilai berhasil dihapus!");
          } else {
              request.getSession().setAttribute("error", "Gagal menghapus: " + nilaiModel.getPesan());
          }
@@ -92,81 +92,84 @@ public class NilaiController extends HttpServlet {
 
             Map<String, String> mahasiswaList = getDropdownData("SELECT nim, nama FROM t_mahasiswa ORDER BY nama");
             Map<String, String> matakuliahList = getDropdownData("SELECT kode_mk, nama_mk FROM t_matakuliah ORDER BY nama_mk");
-
-            out.println("<!DOCTYPE html><html><head><title>CRUD Input Nilai</title>");
-            out.println("<link rel='stylesheet' href='https://unpkg.com/simpledotcss/simple.min.css'>");
-            out.println("<style>");
-            out.println("body { max-width: 900px; margin: 2rem auto; }");
-            out.println(".alert { padding: 1rem; margin-bottom: 1rem; border-radius: 5px; }");
-            out.println(".alert-success { background-color: #d4edda; color: #155724; border:1px solid #c3e6cb;}");
-            out.println(".alert-error { background-color: #f8d7da; color: #721c24; border:1px solid #f5c6cb;}");
-            out.println("header { display:flex; justify-content:space-between; align-items:center; }");
-            out.println("</style></head><body>");
             
-            out.println("<header><h1>Aplikasi Input Nilai</h1>");
-            User user = (User) session.getAttribute("user");
-            if (user != null) {
-                out.println("<p>Halo, <strong>" + user.getNamaLengkap() + "</strong> | <a href='logout'>Logout</a></p>");
-            }
-            out.println("</header>");
+            // Panggil Header
+            Layout.printHeader(out, session, "Input Nilai");
+
+            out.println("<h1><i class='bi bi-pencil-fill'></i> Input Nilai Mahasiswa</h1>");
 
             if (session.getAttribute("message") != null) {
                 out.println("<div class='alert alert-success'>" + session.getAttribute("message") + "</div>");
                 session.removeAttribute("message");
             }
             if (session.getAttribute("error") != null) {
-                out.println("<div class='alert alert-error'>" + session.getAttribute("error") + "</div>");
+                out.println("<div class='alert alert-danger'>" + session.getAttribute("error") + "</div>");
                 session.removeAttribute("error");
             }
 
-            out.println("<h2>" + (nilaiEdit != null ? "Edit" : "Tambah") + " Nilai</h2>");
-            out.println("<form method='post' action='nilai'>");
+            // Gunakan Card untuk Form
+            out.println("<div class='card mb-4'>");
+            out.println("  <div class='card-header'>" + (nilaiEdit != null ? "Edit" : "Tambah") + " Nilai</div>");
+            out.println("  <div class='card-body'>");
+            out.println("    <form method='post' action='nilai'>");
             if (nilaiEdit != null) {
-                out.println("<input type='hidden' name='idNilai' value='" + nilaiEdit.getIdNilai() + "'>");
+                out.println("      <input type='hidden' name='idNilai' value='" + nilaiEdit.getIdNilai() + "'>");
             }
-            
-            out.println("<p><label>Mahasiswa</label><select name='nim' required>");
+            out.println("      <div class='mb-3'><label for='nim' class='form-label'>Mahasiswa</label><select class='form-select' id='nim' name='nim' required>");
             for (Map.Entry<String, String> entry : mahasiswaList.entrySet()) {
                 String selected = (nilaiEdit != null && entry.getKey().equals(nilaiEdit.getNimMahasiswa())) ? "selected" : "";
                 out.println("<option value='" + entry.getKey() + "' " + selected + ">" + entry.getValue() + "</option>");
             }
-            out.println("</select></p>");
-            
-            out.println("<p><label>Mata Kuliah</label><select name='kode_mk' required>");
+            out.println("      </select></div>");
+            out.println("      <div class='mb-3'><label for='kode_mk' class='form-label'>Mata Kuliah</label><select class='form-select' id='kode_mk' name='kode_mk' required>");
             for (Map.Entry<String, String> entry : matakuliahList.entrySet()) {
                 String selected = (nilaiEdit != null && entry.getKey().equals(nilaiEdit.getKodeMatakuliah())) ? "selected" : "";
                 out.println("<option value='" + entry.getKey() + "' " + selected + ">" + entry.getValue() + "</option>");
             }
-            out.println("</select></p>");
+            out.println("      </select></div>");
+            
+            // Form nilai dalam row dan column
+            out.println("      <div class='row'>");
+            out.println("        <div class='col-md-4 mb-3'><label for='tugas' class='form-label'>Nilai Tugas</label><input type='number' class='form-control' id='tugas' name='tugas' min='0' max='100' value='" + (nilaiEdit != null ? nilaiEdit.getNilaiTugas() : 0) + "' required></div>");
+            out.println("        <div class='col-md-4 mb-3'><label for='uts' class='form-label'>Nilai UTS</label><input type='number' class='form-control' id='uts' name='uts' min='0' max='100' value='" + (nilaiEdit != null ? nilaiEdit.getNilaiUts() : 0) + "' required></div>");
+            out.println("        <div class='col-md-4 mb-3'><label for='uas' class='form-label'>Nilai UAS</label><input type='number' class='form-control' id='uas' name='uas' min='0' max='100' value='" + (nilaiEdit != null ? nilaiEdit.getNilaiUas() : 0) + "' required></div>");
+            out.println("      </div>");
 
-            out.println("<p><label>Nilai Tugas</label><input type='number' name='tugas' min='0' max='100' value='" + (nilaiEdit != null ? nilaiEdit.getNilaiTugas() : 0) + "' required></p>");
-            out.println("<p><label>Nilai UTS</label><input type='number' name='uts' min='0' max='100' value='" + (nilaiEdit != null ? nilaiEdit.getNilaiUts() : 0) + "' required></p>");
-            out.println("<p><label>Nilai UAS</label><input type='number' name='uas' min='0' max='100' value='" + (nilaiEdit != null ? nilaiEdit.getNilaiUas() : 0) + "' required></p>");
-            out.println("<button type='submit'>" + (nilaiEdit != null ? "Update" : "Simpan") + "</button>");
+            out.println("      <button type='submit' class='btn btn-primary'>" + (nilaiEdit != null ? "Update Data" : "Simpan") + "</button>");
             if (nilaiEdit != null) {
-                out.println("<a href='nilai' style='margin-left: 1rem;'><button type='button' class='secondary'>Batal</button></a>");
+                out.println("      <a href='nilai' class='btn btn-secondary ms-2'>Batal</a>");
             }
-            out.println("</form>");
-
-            out.println("<h2>Daftar Nilai</h2><table>");
-            out.println("<thead><tr><th>NIM</th><th>Nama</th><th>Mata Kuliah</th><th>Tugas</th><th>UTS</th><th>UAS</th><th>Nilai Akhir</th><th>Aksi</th></tr></thead><tbody>");
+            out.println("    </form>");
+            out.println("  </div>");
+            out.println("</div>");
+            
+            // Gunakan Card untuk Tabel
+            out.println("<div class='card'>");
+            out.println("  <div class='card-header'>Daftar Nilai</div>");
+            out.println("  <div class='card-body'>");
+            out.println("    <div class='table-responsive'>");
+            out.println("      <table class='table table-striped table-hover'>");
+            out.println("        <thead><tr><th>Nama Mahasiswa</th><th>Mata Kuliah</th><th>Tugas</th><th>UTS</th><th>UAS</th><th>Nilai Akhir</th><th>Aksi</th></tr></thead><tbody>");
             if (nilaiModel.bacaData()) {
                 for (Object[] row : nilaiModel.getList()) {
                     out.println("<tr>");
-                    out.println("<td>" + row[1] + "</td><td>" + row[2] + "</td><td>" + row[4] + "</td>");
+                    out.println("<td>" + row[2] + "</td><td>" + row[4] + "</td>");
                     out.println("<td>" + row[5] + "</td><td>" + row[6] + "</td><td>" + row[7] + "</td>");
-                    out.println("<td>" + String.format("%.2f", row[8]) + "</td>");
-                    out.println("<td><a href='nilai?action=edit&id=" + row[0] + "'>Edit</a> | ");
-                    out.println("<a href='nilai?action=delete&id=" + row[0] + "' onclick='return confirm(\"Yakin ingin menghapus data ini?\")'>Hapus</a></td>");
+                    out.println("<td><strong>" + String.format("%.2f", row[8]) + "</strong></td>");
+                    out.println("<td><a href='nilai?action=edit&id=" + row[0] + "' class='btn btn-sm btn-warning'><i class='bi bi-pencil-square'></i> Edit</a> ");
+                    out.println("<a href='nilai?action=delete&id=" + row[0] + "' class='btn btn-sm btn-danger' onclick='return confirm(\"Yakin ingin menghapus data ini?\")'><i class='bi bi-trash-fill'></i> Hapus</a></td>");
                     out.println("</tr>");
                 }
             }
-            out.println("</tbody></table></body></html>");
+            out.println("</tbody></table></div></div></div>");
+
+            // Panggil Footer
+            Layout.printFooter(out);
         }
     }
 
     private Map<String, String> getDropdownData(String query) {
-        Map<String, String> data = new LinkedHashMap<>(); // Pakai LinkedHashMap agar urutan terjaga
+        Map<String, String> data = new LinkedHashMap<>();
         try (Connection conn = koneksi.getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery(query)) {
             while (rs.next()) {
                 data.put(rs.getString(1), rs.getString(1) + " - " + rs.getString(2));
